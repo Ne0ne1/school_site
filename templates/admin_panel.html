@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Админ Панель</h2>
+        <ul>
+            <li><a href="{{ url_for('add_student') }}">Добавить ученика</a></li>
+            <li><a href="{{ url_for('add_teacher') }}">Добавить учителя</a></li>
+            <li><a href="{{ url_for('add_class') }}">Добавить класс</a></li>
+            <li><a href="#">Список классов</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1>Главная страница</h1>
+        <div class="stats">
+            <p><strong>Всего классов:</strong> {{ classes|length }}</p>
+            <p><strong>Всего учеников:</strong> {{ students|length }}</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+
+            <!-- <div class="search-field"> -->
+                <h2>Поиск учеников:</h2>
+                
+                <input type="text" name="search" placeholder="Введите имя или фамилию" 
+                value="{{ request.args.get('search', '') }}">
+                <!-- </div> -->
+                <form method="get" action="{{ url_for('index') }}">
+                 
+                    <button type="submit">Найти</button>
+                    <a href="{{ url_for('index') }}" class="reset-btn">Показать всех</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="tables-container">
+            <div class="table-box">
+                <h2>Список учеников:</h2>
+                <table class="students-table">
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Класс</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in filtered_students %}
+                        <tr>
+                            <td>{{ student.first_name }} {{ student.last_name }}</td>
+                            <td>{{ student.class }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2">Ничего не найдено</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-box">
+                <h2>Последние добавленные:</h2>
+                <table class="last-added-table">
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Класс</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in last_students %}
+                        <tr>
+                            <td>{{ student.first_name }} {{ student.last_name }}</td>
+                            <td>{{ student.class }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

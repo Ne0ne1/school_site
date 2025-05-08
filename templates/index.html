@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список учеников</title>
+</head>
+<body>
+    <h1>Список учеников</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Фамилия</th>
+            <th>Класс</th>
+        </tr>
+        {% for student in students %}
+        <tr>
+            <td>{{ student.id }}</td>
+            <td>{{ student.first_name }}</td>
+            <td>{{ student.last_name }}</td>
+            <td>{{ student.class_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <h2>Добавить ученика</h2>
+    <form action="/students" method="post">
+        <label>Имя:</label>
+        <input type="text" name="first_name" required><br>
+        <label>Фамилия:</label>
+        <input type="text" name="last_name" required><br>
+        <label>Класс:</label>
+        <select name="class">
+            {% for class in classes %}
+                <option value="{{ class.name }}">{{ class.name }}</option>
+            {% endfor %}
+        </select><br>
+        <button type="submit">Добавить</button>
+    </form>
+</body>
+</html>
