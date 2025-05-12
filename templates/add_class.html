@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Добавить класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -13,15 +12,14 @@
             <li><a href="{{ url_for('add_student') }}">Добавить ученика</a></li>
             <li><a href="{{ url_for('add_teacher') }}">Добавить учителя</a></li>
             <li><a href="{{ url_for('add_class') }}">Добавить класс</a></li>
-            <li><a href="{{ url_for('index') }}">Главная страница</a></li>
+            <li><a href="{{ url_for('index') }}">Главная</a></li>
         </ul>
     </div>
     <div class="main-content">
         <h2>Добавить класс</h2>
         <form method="post" class="form-container">
-            <label for="class_name">Имя класса:</label>
+            <label for="class_name">Название класса:</label>
             <input type="text" id="class_name" name="class_name" required>
-
             <button type="submit">Добавить</button>
         </form>
         <a href="{{ url_for('index') }}" class="back-link">Назад</a>

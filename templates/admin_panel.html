@@ -13,7 +13,7 @@
             <li><a href="{{ url_for('add_student') }}">Добавить ученика</a></li>
             <li><a href="{{ url_for('add_teacher') }}">Добавить учителя</a></li>
             <li><a href="{{ url_for('add_class') }}">Добавить класс</a></li>
-            <li><a href="#">Список классов</a></li>
+            <li><a href="{{ url_for('logout') }}">Выйти</a></li>
         </ul>
     </div>
 
@@ -47,15 +47,15 @@
                 <table class="students-table">
                     <thead>
                         <tr>
-                            <th>ФИО</th>
+                            <th>Логин</th>
                             <th>Класс</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for student in filtered_students %}
                         <tr>
-                            <td>{{ student.first_name }} {{ student.last_name }}</td>
-                            <td>{{ student.class }}</td>
+                            <td>{{ student.username }}</td>
+                            <td>{{ student.class_.name if student.class_ else '—' }}</td>
                         </tr>
                         {% else %}
                         <tr>
@@ -64,28 +64,4 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-
-            <div class="table-box">
-                <h2>Последние добавленные:</h2>
-                <table class="last-added-table">
-                    <thead>
-                        <tr>
-                            <th>ФИО</th>
-                            <th>Класс</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in last_students %}
-                        <tr>
-                            <td>{{ student.first_name }} {{ student.last_name }}</td>
-                            <td>{{ student.class }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+            </div

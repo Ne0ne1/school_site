@@ -25,8 +25,18 @@
             <label for="last_name">Фамилия:</label>
             <input type="text" id="last_name" name="last_name" required>
 
-            <label for="class">Класс:</label>
-            <input type="text" id="class" name="class" required>
+            <label for="username">Логин:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="class_id">Класс:</label>
+            <select id="class_id" name="class_id" required>
+                {% for cls in classes %}
+                    <option value="{{ cls.id }}">{{ cls.name }}</option>
+                {% endfor %}
+            </select>
 
             <button type="submit">Добавить</button>
         </form>
