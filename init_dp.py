@@ -1,4 +1,4 @@
-from app import app
+from server import app
 from models import db, User, Class, Subject
 from werkzeug.security import generate_password_hash
 
@@ -12,14 +12,14 @@ with app.app_context():
 
     admin = User(
         username='admin',
-        password_hash=generate_password_hash('admin123'),  # пароль: admin123
+        password_hash=generate_password_hash('1'),  # пароль: admin123
         role='admin'
     )
     db.session.add(admin)
     
     student = User(
-        username="student1",
-        password_hash=generate_password_hash("123456"),
+        username="student",
+        password_hash=generate_password_hash("1"),
         role="student",
         class_id=cls.id
     )
