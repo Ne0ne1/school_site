@@ -12,14 +12,14 @@ with app.app_context():
 
     admin = User(
         username='admin',
-        password_hash=generate_password_hash('1'),  # пароль: admin123
+        password_hash='1',  # пароль: admin123
         role='admin'
     )
     db.session.add(admin)
     
     student = User(
         username="student",
-        password_hash=generate_password_hash("1"),
+        password_hash = "1",
         role="student",
         class_id=cls.id
     )
@@ -27,7 +27,7 @@ with app.app_context():
 
     teacher = User(
         username="teacher1",
-        password_hash=generate_password_hash("qwerty"),
+        password_hash="qwerty",
         role="moderator"
     )
     db.session.add(teacher)
