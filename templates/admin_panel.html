@@ -12,8 +12,8 @@
         <ul>
             <li><a href="{{ url_for('add_student') }}">Добавить ученика</a></li>
             <li><a href="{{ url_for('add_teacher') }}">Добавить учителя</a></li>
-            <li><a href="{{ url_for('add_class') }}">Добавить класс</a></li>
-            <li><a href="{{ url_for('logout') }}">Выйти</a></li>
+            <li><a href="{{ url_for('class_bp.add_class') }}">Добавить класс</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Выйти</a></li>
         </ul>
     </div>
 
@@ -47,7 +47,7 @@
                 <table class="students-table">
                     <thead>
                         <tr>
-                            <th>Логин</th>
+                            <th>Имя</th>
                             <th>Класс</th>
                         </tr>
                     </thead>
@@ -65,3 +65,6 @@
                     </tbody>
                 </table>
             </div
+
+
+            

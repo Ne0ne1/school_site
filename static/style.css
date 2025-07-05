@@ -247,3 +247,161 @@ th {
         font-size: 1.5rem;
     }
 }
+/* minimal style.css for student_panel.html & subject_detail.html */
+
+/* Цветовая палитра */
+:root {
+    --sidebar-bg: #333;
+    --accent: #3498db;
+    --page-bg: #f4f4f4;
+    --text: #333;
+}
+
+/* Сброс и базовые стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Страница в целом */
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--page-bg);
+}
+
+/* Боковая панель */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    color: #fff;
+    padding: 20px;
+    position: fixed;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.sidebar a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Основной контент */
+.container {
+    margin-left: 270px; /* ширина sidebar + отступ */
+    padding: 20px;
+    width: calc(100% - 270px);
+    color: var(--text);
+}
+
+/* Заголовки */
+h1, h2 {
+    margin-bottom: 1rem;
+}
+
+/* Таблица */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: var(--accent);
+    color: #fff;
+}
+
+th:not(:last-child),
+td:not(:last-child) {
+    border-right: 1px solid #ddd;
+}
+
+/* Зебра и ховер */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Ссылки на PDF (скан и демо) */
+.scan-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.scan-link:hover {
+    text-decoration: underline;
+}
+
+/* Адаптив для узких экранов */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    .container {
+        margin-left: 0;
+        width: 100%;
+    }
+    table {
+        font-size: 14px;
+    }
+}
+
+/* Анимация ошибки */
+.error {
+    color: #e74c3c;
+    background: #fbe3e0;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    text-align: center;
+    border: 1px solid #e74c3c;
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}

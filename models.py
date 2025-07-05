@@ -1,49 +1,104 @@
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+# models.py
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 
-db = SQLAlchemy()
+# --------------------
+# Configuration: adjust these URLs to point to your databases.
+AUTH_DATABASE_URL = "sqlite:///auth_db.sqlite"
+SCHOOL_DATABASE_URL = "sqlite:///school_db.sqlite"
 
-class Class(db.Model):
+# For PostgreSQL later:
+# AUTH_DATABASE_URL = "postgresql://user:pass@host:port/auth_db"
+# SCHOOL_DATABASE_URL = "postgresql://user:pass@host:port/school_db"
+# --------------------
+
+# Engines
+auth_engine = create_engine(AUTH_DATABASE_URL, echo=True)
+school_engine = create_engine(SCHOOL_DATABASE_URL, echo=True)
+
+# Bases
+auth_Base = declarative_base()
+school_Base = declarative_base()
+
+# Session makers
+AuthSessionLocal = sessionmaker(bind=auth_engine)
+SchoolSessionLocal = sessionmaker(bind=school_engine)
+
+# --------------------
+# Models for auth_db
+class UserAuth(auth_Base):
+    __tablename__ = 'user_auth'
+    id = Column(Integer, primary_key=True, index=True)
+    login = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    permissions = Column(String, nullable=False)  # 'student', 'teacher', 'admin'
+
+# --------------------
+# Models for school_db
+class Class(school_Base):
     __tablename__ = 'classes'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(10), nullable=False)
-    students = db.relationship('User', backref='class_', lazy=True)
-    subjects = db.relationship('Subject', backref='class_', lazy=True)
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, unique=True, nullable=False)
+    students = relationship("Student", back_populates="class_")
+    tasks = relationship("Task", back_populates="class_")
 
-class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(10), nullable=False)  # admin / moderator / student
-    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=True)
-
-class Subject(db.Model):
+class Subject(school_Base):
     __tablename__ = 'subjects'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
-    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False)
-    assignments = db.relationship('Assignment', backref='subject', lazy=True)
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, unique=True, nullable=False)
+    tasks = relationship("Task", back_populates="subject")
 
-class Assignment(db.Model):
-    __tablename__ = 'assignments'
-    id = db.Column(db.Integer, primary_key=True)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
-    title = db.Column(db.String(128))
-    description = db.Column(db.Text)
-    file_path = db.Column(db.String(256))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+class Student(school_Base):
+    __tablename__ = 'students'
+    id = Column(Integer, primary_key=True, index=True)
+    fullname = Column(String, nullable=False)
+    class_id = Column(Integer, ForeignKey('classes.id'), nullable=False)
+    auth_id = Column(Integer, nullable=False)  # no FK to auth_db
 
-class Submission(db.Model):
+    class_ = relationship("Class", back_populates="students")
+    submissions = relationship("Submission", back_populates="student")
+
+class Teacher(school_Base):
+    __tablename__ = 'teachers'
+    id = Column(Integer, primary_key=True, index=True)
+    fullname = Column(String, nullable=False)
+    auth_id = Column(Integer, nullable=False)  # no FK
+
+class Task(school_Base):
+    __tablename__ = 'tasks'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    pdf_link = Column(String)
+    date_time = Column(DateTime)
+    class_id = Column(Integer, ForeignKey('classes.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subjects.id'), nullable=False)
+
+    class_ = relationship("Class", back_populates="tasks")
+    subject = relationship("Subject", back_populates="tasks")
+    submissions = relationship("Submission", back_populates="task")
+
+class Submission(school_Base):
     __tablename__ = 'submissions'
-    id = db.Column(db.Integer, primary_key=True)
-    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    file_path = db.Column(db.String(256))
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='pending')  # pending / approved / rejected
-    grade = db.Column(db.String(5))
-    comment = db.Column(db.Text)
-    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    reviewed_at = db.Column(db.DateTime)
+    id = Column(Integer, primary_key=True, index=True)
+    assignment_id = Column(Integer, ForeignKey('tasks.id'), nullable=False)
+    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
+    pdf_file = Column(String)
+    grade = Column(String)
+    comment = Column(Text)
+
+    task = relationship("Task", back_populates="submissions")
+    student = relationship("Student", back_populates="submissions")
+
+# --------------------
+# Init functions
+def init_auth_db():
+    auth_Base.metadata.create_all(bind=auth_engine)
+
+def init_school_db():
+    school_Base.metadata.create_all(bind=school_engine)
+
+if __name__ == "__main__":
+    # choose one or both
+    init_auth_db()
+    init_school_db()

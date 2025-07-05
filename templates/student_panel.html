@@ -1,149 +1,153 @@
-@@ -0,0 +1,148 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель студента</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Панель студента</title>
+  <style>
+    /* Сброс и базовые стили */
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex; min-height: 100vh;
+      background: #f4f4f4;
+    }
 
-        body {
-            display: flex;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
+    /* Сайдбар */
+    .sidebar {
+      width: 250px; background: #2c3e50; color: #fff;
+      padding: 20px; display: flex; flex-direction: column;
+    }
+    .sidebar h2 {
+      text-align: center; margin-bottom: 20px; font-size: 22px;
+    }
+    .sidebar a,
+    .logout-btn {
+      color: #fff; text-decoration: none;
+      padding: 10px; margin: 5px 0; border-radius: 5px;
+      display: block;
+    }
+    .sidebar a:hover { background: #34495e; }
+    .logout-btn {
+      background: none; border: none;
+      text-align: left; cursor: pointer;
+      margin-top: auto;
+    }
+    .logout-btn:hover { background: #e74c3c; }
 
-        /* Сайдбар */
-        .sidebar {
-            width: 250px;
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
+    /* Контент */
+    .content {
+      flex-grow: 1; padding: 20px; overflow-y: auto;
+    }
+    h1 {
+      margin-bottom: 20px; color: #333;
+    }
 
-        .sidebar h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 22px;
-        }
+    /* Контейнер уведомлений */
+    .notifications-container {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+    }
 
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            display: block;
-            margin: 5px 0;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+    /* Общий класс для уведомлений */
+    .notice {
+      flex: 0 0 220px;
+      height: 160px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 15px;
+      word-break: break-word; overflow: auto;
+      margin: 0;
+    }
+    /* Красное напоминание */
+    .reminder {
+      background: #f8d7da; color: #721c24;
+    }
+    /* Зелёное уведомление */
+    .notification {
+      background: #d4edda; color: #155724;
+    }
 
-        .sidebar a:hover {
-            background-color: #34495e;
-        }
-
-        /* Контент */
-        .content {
-            flex-grow: 1;
-            padding: 20px;
-        }
-
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            
-        }
-
-        th {
-            background-color: #3498db;
-            color: white;
-        }
-
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        .logout-btn {
-            background: none;
-            border: none;
-            color: white;
-            padding: 10px;
-            text-align: left;
-            width: 100%;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .logout-btn:hover {
-            background-color: #e74c3c;
-        }
-    </style>
-
-    <script>
-        function confirmLogout() {
-            if (confirm("Вы уверены, что хотите выйти?")) {
-                window.location.href = "{{ url_for('logout') }}";
-            }
-        }
-
-        function goToSubject(subjectName) {
-            window.location.href = "/subject/" + encodeURIComponent(subjectName);
-        }
-    </script>
+    /* Таблица предметов */
+    table {
+      width: 100%; border-collapse: collapse;
+      background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 8px; overflow: hidden; margin-top: 20px;
+    }
+    th, td {
+      padding: 12px; text-align: left; border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #3498db; color: #fff;
+    }
+    th:not(:last-child),
+    td:not(:last-child) {
+      border-right: 1px solid #ddd;
+    }
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tr:hover { background: #f1f1f1; }
+  </style>
+  <script>
+    function confirmLogout() {
+      if (confirm("Вы уверены, что хотите выйти?")) {
+        window.location = "{{ url_for('logout') }}";
+      }
+    }
+    function goToSubject(name) {
+      window.location = "/subject/" + encodeURIComponent(name);
+    }
+  </script>
 </head>
 <body>
 
-    <!-- Боковая панель -->
-    <div class="sidebar">
-        <h2>Меню</h2>
-        <a href="#">Главная</a>
-        <a href="#">Мои предметы</a>
-        <button class="logout-btn" onclick="confirmLogout()">Выход</button>
+  <!-- Сайдбар -->
+  <div class="sidebar">
+    <h2>Меню</h2>
+    <a href="#">Главная</a>
+    <button class="logout-btn" onclick="confirmLogout()">Выход</button>
+  </div>
+
+  <!-- Основной контент -->
+  <div class="content">
+    <h1>Добро пожаловать, {{ session['user']['username'] }}!</h1>
+
+    <!-- Уведомления в строку -->
+    <div class="notifications-container">
+      <div class="notice reminder">
+        📌 <strong>Не забудьте!</strong>
+        Завтра — контрольная по Математике</em>
+        тема «Производные».<br>
+        Желаем удачи!
+      </div>
+      <div class="notice notification">
+        📊 <strong>Оценки выставлены!</strong>
+        12 мая был тест по <em>Физике</em>
+        тема «Давление».
+      </div>
     </div>
 
-    <!-- Основной контент -->
-    <div class="content">
-        <h1>Добро пожаловать, {{ session['user']['username'] }}</h1>
-        <h2>Мои предметы</h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Предмет</th>
-                    <th>Учитель</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for subject in subjects %}
-                <tr onclick="goToSubject('{{ subject.name }}')" style="cursor: pointer;">
-                    <td>{{ subject.name }}</td>
-                    <td>{{ subject.teacher }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <!-- Таблица предметов -->
+    <table>
+      <thead>
+        <tr><th>Предмет</th><th>Учитель</th></tr>
+      </thead>
+      <tbody>
+        {% for subject in subjects %}
+        <tr onclick="goToSubject('{{ subject.name }}')" style="cursor:pointer;">
+          <td>{{ subject.name }}</td>
+          <td>{{ subject.teacher }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
 </body>
 </html>
