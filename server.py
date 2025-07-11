@@ -1,165 +1,125 @@
+
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-from datetime import timedelta, datetime
-from models import db, User, Class, Subject
-from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import timedelta
+from decorators import login_required
+from auth import auth_bp
+from init_db import init_auth_db
+from classes import class_bp
+from student_routes import student_bp
+from database1 import student_subjects, students, subjects_data, classes
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # ЗАМЕНИТЬ НА НАСТОЯЩИЙ КЛЮЧ В ПРОДАКШЕНЕ
+app.secret_key = 'your_secret_key'  # В продакшене используйте сложный ключ!
 
 # Настройки сессии
 app.config.update(
-    PERMANENT_SESSION_LIFETIME=timedelta(days=14),
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_REFRESH_EACH_REQUEST=True
+    PERMANENT_SESSION_LIFETIME=timedelta(days=14),  # Срок жизни куки - 14 дней
+    SESSION_COOKIE_SECURE=False,      # Только для HTTPS в production
+    # SESSION_COOKIE_HTTPONLY=True,    # Защита от XSS
+    # SESSION_COOKIE_SAMESITE='Lax',   # Защита от CSRF
+    # SESSION_REFRESH_EACH_REQUEST=True  # Обновлять срок при каждом запросе
 )
+    
+# === Регистрируем маршруты авторизации ===
+app.register_blueprint(auth_bp)
 
-# Настройки БД
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///school.db'  # или PostgreSQL URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
+# регитсрация маршрута на добавление классов
+app.register_blueprint(class_bp)
 
-# --- Аутентификация и роли ---
+# регистрация маршрутра на добавление ученика
+app.register_blueprint(student_bp)
+
 
 def is_authenticated(required_role=None):
-    user = session.get('user')
-    if not user:
+    if 'user_id' not in session:
         return False
-    if required_role and user.get('role') != required_role:
+    if required_role and session.get('permissions') != required_role:
         return False
     return True
 
-def login_required(role=None):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            if not is_authenticated(role):
-                return redirect(url_for('login'))
-            return func(*args, **kwargs)
-        wrapper.__name__ = func.__name__
-        return wrapper
-    return decorator
-
-# --- Маршруты ---
 
 @app.route('/')
 @login_required()
 def index():
-    students = User.query.filter_by(role='student').all()
-    classes = Class.query.all()
+    search_query = request.args.get('search', '').strip().lower()
+    
+    if search_query:
+        filtered_students = [
+            s for s in students 
+            if (search_query in s['first_name'].lower() or 
+                search_query in s['last_name'].lower())
+        ]
+    else:
+        filtered_students = students
+    
+    last_students = students[-5:][::-1]
+    
     return render_template(
         'admin_panel.html',
-        students=students,
         classes=classes,
-        filtered_students=students,
-        last_students=students[-5:]
+        students=students,
+        filtered_students=filtered_students,
+        last_students=last_students
     )
 
-@app.route('/add_student', methods=['GET', 'POST'])
-@login_required(role='admin')
-def add_student():
-    if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        username = request.form['username']
-        password = request.form['password']
-        class_id = request.form['class_id']
-
-        password_hash = generate_password_hash(password)
-
-        new_user = User(
-            username=username,
-            password_hash=password_hash,
-            role='student',
-            class_id=class_id
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('index'))
-
-    classes = Class.query.all()
-    return render_template('add_student.html', classes=classes)
-
-@app.route('/add_class', methods=['GET', 'POST'])
-@login_required(role='admin')
-def add_class():
-    if request.method == 'POST':
-        class_name = request.form['class_name']
-        new_class = Class(name=class_name)
-        db.session.add(new_class)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('add_class.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password_hash, password):
-            session.permanent = True
-            session['user'] = {
-                'username': user.username,
-                'role': user.role,
-                'user_id': user.id,
-                'login_time': datetime.now().isoformat()
+@app.route('/api/students', methods=['GET'])
+def get_students():
+    query = request.args.get('query', '').strip().lower()
+    
+    if not query:
+        return jsonify([
+            {
+                'id': s['id'],
+                'first_name': s['first_name'],
+                'last_name': s['last_name'],
+                'class': s['class']
             }
-            if user.role == 'admin':
-                return redirect(url_for('admin_panel'))
-            elif user.role == 'student':
-                return redirect(url_for('student_panel'))
-            elif user.role == 'moderator':
-                return redirect(url_for('moderator_panel'))  # реализация позже
-        else:
-            return render_template('login.html', error='Неверные данные')
-    return render_template('login.html')
-
-@app.route('/admin')
-@login_required(role='admin')
-def admin_panel():
-    students = User.query.filter_by(role='student').all()
-    classes = Class.query.all()
-    return render_template('admin_panel.html', students=students, classes=classes)
-
-@app.route('/student')
-@login_required(role='student')
-def student_panel():
-    user_id = session['user']['user_id']
-    user = User.query.get(user_id)
-    subjects = Subject.query.filter_by(class_id=user.class_id).all()
-    return render_template('student_panel.html', subjects=subjects)
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
+            for s in students
+        ])
+    
+    result = [
+        {
+            'id': s['id'],
+            'first_name': s['first_name'],
+            'last_name': s['last_name'],
+            'class': s['class']
+        }
+        for s in students 
+        if (query in s['first_name'].lower() or 
+            query in s['last_name'].lower())
+    ]
+    
+    return jsonify(result)
 
 @app.route('/add_teacher', methods=['GET', 'POST'])
 @login_required(role='admin')
 def add_teacher():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        from werkzeug.security import generate_password_hash
-
-        new_teacher = User(
-            username=username,
-            password_hash=generate_password_hash(password),
-            role='moderator'
-        )
-        db.session.add(new_teacher)
-        db.session.commit()
-        return redirect(url_for('admin_panel'))
-
+        return redirect(url_for('index'))
     return render_template('add_teacher.html')
 
 
+@app.route('/admin')
+@login_required(role='admin')
+def admin_panel():
+    return render_template('admin_panel.html')
 
-# Запуск
+@app.route('/student')
+@login_required(role='student')
+def student_panel():
+    return render_template('student_panel.html', subjects=student_subjects)
+
+@app.route('/subject/<subject_name>')
+@login_required(role='student')
+def subject_detail(subject_name):
+    subject_info = subjects_data.get(subject_name, [])
+    return render_template('subject_detail.html', 
+                         subject_name=subject_name, 
+                         exams=subject_info)
+
+@app.route('/teacher')
+def teacher_panel():
+    return "pong"
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)

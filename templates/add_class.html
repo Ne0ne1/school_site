@@ -1,28 +1,59 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Добавить класс</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Добавить класс</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="sidebar">
-        <h2>Админ Панель</h2>
-        <ul>
-            <li><a href="{{ url_for('add_student') }}">Добавить ученика</a></li>
-            <li><a href="{{ url_for('add_teacher') }}">Добавить учителя</a></li>
-            <li><a href="{{ url_for('add_class') }}">Добавить класс</a></li>
-            <li><a href="{{ url_for('index') }}">Главная</a></li>
-        </ul>
+  <div class="sidebar">
+    <h2>Админ Панель</h2>
+    <ul>
+      <li><a href="{{ url_for('student_bp.add_student') }}">Добавить ученика</a></li>
+      <li><a href="{{ url_for('add_teacher') }}">Добавить учителя</a></li>
+      <li><a href="{{ url_for('class_bp.add_class') }}" class="active">Добавить класс</a></li>
+      <li><a href="{{ url_for('index') }}">Главная страница</a></li>
+    </ul>
+  </div>
+  <div class="main-content">
+    <h2>Добавить класс</h2>
+
+    <div id="errorContainer" class="error" style="display: none;">
+      {{ error if error else '' }}
     </div>
-    <div class="main-content">
-        <h2>Добавить класс</h2>
-        <form method="post" class="form-container">
-            <label for="class_name">Название класса:</label>
-            <input type="text" id="class_name" name="class_name" required>
-            <button type="submit">Добавить</button>
-        </form>
-        <a href="{{ url_for('index') }}" class="back-link">Назад</a>
-    </div>
+
+    <form method="POST" class="form-container" id="classForm">
+
+      <label for="class_name">Название класса (1–11 + русская буква):</label>
+      <input type="text" id="class_name" name="class_name"
+             pattern="^(?:[1-9]|1[0-1])[А-Ма-м]$"
+             value="{{ request.form.class_name or '' }}" required
+             title="Формат: цифра от 1 до 11 и русская буква (например, 5А или 11Б)"
+             aria-errormessage="{{ error if error else '' }}"
+             style="text-transform: uppercase;"
+             >
+      <button type="submit">Добавить</button>
+    </form>
+
+    <a href="{{ url_for('index') }}" class="back-link">Назад</a>
+  </div>
+
+  <script>
+    document.getElementById('classForm').addEventListener('submit', async function(e) {
+      const input = document.getElementById('class_name');
+      const errorContainer = document.getElementById('errorContainer')
+      const errorText = "{{ error if error else '' }}";
+      if (errorText) {
+        errorContainer.textContent = errorText;
+        errorContainer.style.display = 'block';
+        errorContainer.classList.add('shake');
+
+        setTimeout(() => {
+          errorContainer.style.display = 'none';
+        }, 5000); // 5 секунд
+      }})
+   
+  </script>
+
 </body>
 </html>
